@@ -1,0 +1,14 @@
+<resources>
+    <!-- Colores principales -->
+    <color name="primaryColor">@color/surfaceColor</color> <!-- Azul claro -->
+    <color name="primaryDarkColor">@color/surfaceColor</color> <!-- Azul oscuro -->
+    <color name="secondaryColor">#FF0000</color> <!-- Gris claro -->
+
+    <!-- Colores de fondo y superficie -->
+    <color name="backgroundColor">#5F5B5B</color> <!-- Gris claro -->
+    <color name="surfaceColor">#873499C5</color> <!-- Blanco para superficies -->
+
+    <!-- Texto y botones -->
+    <color name="white">#FFFFFF</color>
+    <color name="errorColor">#FF6B6B</color> <!-- Rojo para errores -->
+</resources>
