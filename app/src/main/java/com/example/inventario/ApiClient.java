@@ -7,13 +7,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiClient {
 
     private static Retrofit retrofit;
-    private static final String BASE_URL = "http://192.168.4.63:8000/";
+    private static final String BASE_URL = "http://192.168.1.178:8000/";
 
     public static Retrofit getClient() {
         if (retrofit == null) {
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .addInterceptor(new BasicAuthInterceptor("Criss", "Admin01")) // Credenciales para autenticación básica
-                    .build();
+            OkHttpClient client = new OkHttpClient.Builder().build();
 
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)

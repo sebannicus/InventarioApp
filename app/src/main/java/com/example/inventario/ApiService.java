@@ -1,9 +1,11 @@
 package com.example.inventario.api;
 
+import com.example.inventario.models.LoginRequest;
 import com.example.inventario.models.Producto;
 
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -25,4 +27,6 @@ public interface ApiService {
     @DELETE("api/productos/{id}/")
     Call<Void> deleteProducto(@Path("id") int id);
 
+    @POST("api/login/")  // Login con JSON (username, password)
+    Call<ResponseBody> login(@Body LoginRequest loginRequest);
 }
