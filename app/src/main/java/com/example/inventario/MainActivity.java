@@ -1,13 +1,14 @@
 package com.example.inventario;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
+import android.speech.RecognizerIntent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,14 +25,17 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final int REQUEST_CODE_VOICE = 1;
+
+    private enum VoiceState { NAME, DESCRIPTION, PRICE, QUANTITY, NONE }
+    private VoiceState currentVoiceState = VoiceState.NONE;
 
     private RecyclerView recyclerView;
     private TextView errorText;
-    private EditText productNameInput, productPriceInput, productQuantityInput;
-    private Button addProductButton, updateProductButton, deleteProductButton;
+    private EditText productNameInput, productDescriptionInput, productPriceInput, productQuantityInput;
     private ProductAdapter adapter;
     private List<Producto> productos = new ArrayList<>();
+    private List<Producto> filteredProductos = new ArrayList<>();
     private int selectedProductId = -1;
 
     @Override
@@ -39,81 +43,135 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Inicializa las vistas
         recyclerView = findViewById(R.id.productList);
         errorText = findViewById(R.id.errorText);
         productNameInput = findViewById(R.id.productNameInput);
+        productDescriptionInput = findViewById(R.id.productDescriptionInput);
         productPriceInput = findViewById(R.id.productPriceInput);
         productQuantityInput = findViewById(R.id.productQuantityInput);
 
-        addProductButton = findViewById(R.id.addProductButton);
-        updateProductButton = findViewById(R.id.updateProductButton);
-        deleteProductButton = findViewById(R.id.deleteProductButton);
-
-        // Configura el RecyclerView
-        adapter = new ProductAdapter(productos, this::onProductSelected);
+        adapter = new ProductAdapter(filteredProductos, this::onProductSelected);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // Llama a la API para obtener los productos
-        fetchProducts();
+        Button voiceAddButton = findViewById(R.id.voiceAddButton);
+        voiceAddButton.setOnClickListener(v -> startVoiceRecognition());
 
-        // Configura los botones
-        addProductButton.setOnClickListener(v -> addProduct());
-        updateProductButton.setOnClickListener(v -> updateProduct());
-        deleteProductButton.setOnClickListener(v -> deleteProduct());
+        fetchProducts();
     }
 
     private void fetchProducts() {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        Call<List<Producto>> call = apiService.getProductos();
-
-        call.enqueue(new Callback<List<Producto>>() {
+        apiService.getProductos().enqueue(new Callback<List<Producto>>() {
             @Override
             public void onResponse(Call<List<Producto>> call, Response<List<Producto>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    errorText.setVisibility(View.GONE);
-                    recyclerView.setVisibility(View.VISIBLE);
-
+                if (response.isSuccessful()) {
                     productos.clear();
                     productos.addAll(response.body());
+                    filteredProductos.clear();
+                    filteredProductos.addAll(productos);
                     adapter.notifyDataSetChanged();
                 } else {
-                    errorText.setText("Error en la respuesta: " + response.code());
-                    Log.e(TAG, "Error en la respuesta: " + response.message());
+                    errorText.setText("Error en la respuesta del servidor.");
                 }
             }
 
             @Override
             public void onFailure(Call<List<Producto>> call, Throwable t) {
-                errorText.setText("Error al conectar con la API: " + t.getMessage());
-                Log.e(TAG, "Error al conectar con la API", t);
+                errorText.setText("Error al conectar con la API.");
             }
         });
     }
 
+    private void startVoiceRecognition() {
+        currentVoiceState = VoiceState.NAME;
+        promptVoiceInput("Dime el nombre del producto.");
+    }
+
+    private void promptVoiceInput(String prompt) {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, prompt);
+        startActivityForResult(intent, REQUEST_CODE_VOICE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_VOICE && resultCode == RESULT_OK && data != null) {
+            ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (results != null && !results.isEmpty()) {
+                String input = results.get(0);
+                processVoiceInput(input);
+            }
+        }
+    }
+
+    private void processVoiceInput(String input) {
+        switch (currentVoiceState) {
+            case NAME:
+                productNameInput.setText(input);
+                currentVoiceState = VoiceState.DESCRIPTION;
+                promptVoiceInput("Dime la descripción del producto.");
+                break;
+
+            case DESCRIPTION:
+                productDescriptionInput.setText(input);
+                currentVoiceState = VoiceState.PRICE;
+                promptVoiceInput("Dime el precio del producto.");
+                break;
+
+            case PRICE:
+                try {
+                    Double.parseDouble(input); // Validar que sea un número
+                    productPriceInput.setText(input);
+                    currentVoiceState = VoiceState.QUANTITY;
+                    promptVoiceInput("Dime la cantidad del producto.");
+                } catch (NumberFormatException e) {
+                    promptVoiceInput("El precio debe ser un número. Inténtalo de nuevo.");
+                }
+                break;
+
+            case QUANTITY:
+                try {
+                    Integer.parseInt(input); // Validar que sea un número entero
+                    productQuantityInput.setText(input);
+                    currentVoiceState = VoiceState.NONE;
+                    addProduct();
+                    Toast.makeText(this, "Producto agregado con éxito.", Toast.LENGTH_SHORT).show();
+                } catch (NumberFormatException e) {
+                    promptVoiceInput("La cantidad debe ser un número entero. Inténtalo de nuevo.");
+                }
+                break;
+
+            default:
+                currentVoiceState = VoiceState.NAME;
+                promptVoiceInput("Dime el nombre del producto.");
+        }
+    }
+
     private void addProduct() {
         String name = productNameInput.getText().toString();
+        String description = productDescriptionInput.getText().toString();
         String price = productPriceInput.getText().toString();
         String quantity = productQuantityInput.getText().toString();
 
-        if (name.isEmpty() || price.isEmpty() || quantity.isEmpty()) {
-            Toast.makeText(MainActivity.this, "Por favor, complete todos los campos", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty() || description.isEmpty() || price.isEmpty() || quantity.isEmpty()) {
+            Toast.makeText(MainActivity.this, "Por favor, completa todos los campos.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Producto producto = new Producto(name, "Descripción", Integer.parseInt(quantity), Double.parseDouble(price), true);
+        Producto producto = new Producto(name, description, Integer.parseInt(quantity), Double.parseDouble(price), true);
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.addProducto(producto).enqueue(new Callback<Producto>() {
             @Override
             public void onResponse(Call<Producto> call, Response<Producto> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "Producto agregado", Toast.LENGTH_SHORT).show();
                     fetchProducts(); // Refresca la lista
-                    clearInputs();
                 } else {
-                    Toast.makeText(MainActivity.this, "Error al agregar producto", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Error al agregar producto.", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -122,81 +180,12 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Error de red: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void updateProduct() {
-        if (selectedProductId == -1) {
-            Toast.makeText(MainActivity.this, "Seleccione un producto para modificar", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String name = productNameInput.getText().toString();
-        String price = productPriceInput.getText().toString();
-        String quantity = productQuantityInput.getText().toString();
-
-        if (name.isEmpty() || price.isEmpty() || quantity.isEmpty()) {
-            Toast.makeText(MainActivity.this, "Por favor, complete todos los campos", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Producto updatedProduct = new Producto(name, "Descripción actualizada", Integer.parseInt(quantity), Double.parseDouble(price), true);
-
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.updateProducto(selectedProductId, updatedProduct).enqueue(new Callback<Producto>() {
-            @Override
-            public void onResponse(Call<Producto> call, Response<Producto> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "Producto modificado", Toast.LENGTH_SHORT).show();
-                    fetchProducts(); // Refresca la lista
-                    clearInputs();
-                } else {
-                    Toast.makeText(MainActivity.this, "Error al modificar producto", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Producto> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Error de red: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void deleteProduct() {
-        if (selectedProductId == -1) {
-            Toast.makeText(MainActivity.this, "Seleccione un producto para eliminar", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.deleteProducto(selectedProductId).enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "Producto eliminado", Toast.LENGTH_SHORT).show();
-                    fetchProducts(); // Refresca la lista
-                    clearInputs();
-                } else {
-                    Toast.makeText(MainActivity.this, "Error al eliminar producto", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Error de red: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void clearInputs() {
-        productNameInput.setText("");
-        productPriceInput.setText("");
-        productQuantityInput.setText("");
-        selectedProductId = -1;
     }
 
     private void onProductSelected(Producto producto) {
         selectedProductId = producto.getId();
         productNameInput.setText(producto.getNombre());
+        productDescriptionInput.setText(producto.getDescripcion());
         productPriceInput.setText(String.valueOf(producto.getPrecio()));
         productQuantityInput.setText(String.valueOf(producto.getCantidad()));
     }

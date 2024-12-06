@@ -1,14 +1,12 @@
 <resources>
-    <!-- Colores principales -->
-    <color name="primaryColor">@color/surfaceColor</color> <!-- Azul claro -->
-    <color name="primaryDarkColor">@color/surfaceColor</color> <!-- Azul oscuro -->
-    <color name="secondaryColor">#FF0000</color> <!-- Gris claro -->
-
-    <!-- Colores de fondo y superficie -->
-    <color name="backgroundColor">#5F5B5B</color> <!-- Gris claro -->
-    <color name="surfaceColor">#873499C5</color> <!-- Blanco para superficies -->
-
-    <!-- Texto y botones -->
-    <color name="white">#FFFFFF</color>
-    <color name="errorColor">#FF6B6B</color> <!-- Rojo para errores -->
+    <color name="primaryColor">#343a40</color>
+    <color name="primaryDarkColor">#212529</color>
+    <color name="accentColor">#f8f9fa</color>
+    <color name="backgroundColor">#e9ecef</color>
+    <color name="textColor">#6c757d</color>
+    <color name="highlightColor">#adb5bd</color>
+    <color name="buttonColor">#007bff</color>
+    <color name="buttonHoverColor">#0056b3</color>
+    <color name="cardBackgroundColor">#f8f9fa</color>
+    <color name="errorColor">#dc3545</color>
 </resources>

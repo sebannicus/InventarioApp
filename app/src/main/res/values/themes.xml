@@ -1,16 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-
-    <!-- Tema principal -->
     <style name="Theme.InventarioApp" parent="Theme.Material3.DayNight">
         <item name="colorPrimary">@color/primaryColor</item>
-        <item name="colorPrimaryVariant">@color/primaryDarkColor</item>
-        <item name="colorSecondary">@color/secondaryColor</item>
-
-        <!-- Define colorBackground si es necesario -->
-        <item name="colorSurface">@color/surfaceColor</item>
-
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="colorOnSurface">@color/white</item>
+        <item name="colorPrimaryDark">@color/primaryDarkColor</item>
+        <item name="colorAccent">@color/accentColor</item>
+        <item name="android:statusBarColor">@color/primaryDarkColor</item>
+        <item name="android:navigationBarColor">@color/primaryColor</item>
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="cardBackgroundColor">@color/cardBackgroundColor</item>
+        <item name="buttonStyle">@style/ButtonStyle</item>
     </style>
 
+    <style name="ButtonStyle">
+        <item name="android:background">@color/buttonColor</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
 </resources>

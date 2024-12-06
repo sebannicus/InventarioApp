@@ -17,6 +17,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     private final List<Producto> productos;
     private final OnProductClickListener listener;
 
+
     public interface OnProductClickListener {
         void onProductClick(Producto producto);
     }

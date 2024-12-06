@@ -4,16 +4,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/surfaceColor">
+    android:background="@color/backgroundColor">
 
     <!-- App Bar con título -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/topAppBar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/surfaceColor"
+        android:background="@color/primaryColor"
         android:title="Gestión de Inventario"
-        android:titleTextColor="@android:color/white" />
+        android:titleTextColor="@color/accentColor" />
 
     <!-- Contenido principal -->
     <LinearLayout
@@ -23,11 +23,12 @@
         android:padding="16dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Campos de Entrada en un CardView -->
+        <!-- Campos de Entrada -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/cardBackgroundColor"
             app:cardElevation="4dp">
 
             <LinearLayout
@@ -46,6 +47,20 @@
                         android:id="@+id/productNameInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Campo para Descripción del Producto -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Descripción del producto"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/productDescriptionInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Campo para Precio del Producto -->
@@ -78,95 +93,61 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Lista de Productos -->
-
-        <!-- Contenedor de Botones -->
+        <!-- RecyclerView para Productos -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/productList"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="#944BAFAF"
             android:padding="8dp"
             android:scrollbars="vertical" />
 
+        <!-- Contenedor de Botones -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:orientation="horizontal">
 
-            <!-- Botones de Comandos de Voz -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/addProductButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
-
-                <!-- Botón Agregar por Voz -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/voiceAddButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Agregar por Voz"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_marginEnd="8dp" />
-
-                <!-- Botón Eliminar por Voz -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/voiceDeleteButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Eliminar por Voz"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_marginStart="8dp" />
-            </LinearLayout>
-
-            <!-- Botones de CRUD -->
-            <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:text="Agregar"
+                android:backgroundTint="@color/buttonColor"
+                android:textColor="@android:color/white" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/updateProductButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <!-- Botón Agregar -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/addProductButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Agregar"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_marginEnd="8dp" />
-
-                <!-- Botón Modificar -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/updateProductButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Modificar"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp" />
-
-                <!-- Botón Eliminar -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/deleteProductButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Eliminar"
-                    style="@style/Widget.Material3.Button" />
-            </LinearLayout>
+                android:layout_weight="1"
+                android:text="Modificar"
+                android:backgroundTint="@color/highlightColor"
+                android:textColor="@android:color/white" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/deleteProductButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Eliminar"
+                android:backgroundTint="@color/errorColor"
+                android:textColor="@android:color/white" />
             <TextView
                 android:id="@+id/errorText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Error al cargar datos"
-                android:textColor="@android:color/holo_red_dark"
+                android:textColor="@color/errorColor"
                 android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/voiceAddButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Agregar por Voz"
+                android:layout_marginTop="16dp"
+                app:backgroundTint="@color/primaryColor"
+                android:textColor="@android:color/white" />
+
         </LinearLayout>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
